@@ -52,7 +52,7 @@ Also, check that the following properties must be enabled:
 Once your cluster is ready, check Workload Identitty:
 
 ```sh
-$ gcloud container clusters describe cluster-1 --format="value(workloadIdentityConfig.workloadPool)" --region europe-west1
+$ gcloud container clusters describe cluster-1 --format="value(workloadIdentityConfig.workloadPool)" --region europe-west9
 ```
 
 If result is `cheese-quizz.svc.id.goog` then it's enabled.
@@ -70,14 +70,14 @@ cluster-1  b43cd750-de46-4e43-b98e-2834aa1e4ad4
 ```sh
 $ gcloud container fleet memberships describe cluster-1
 authority:
-  identityProvider: https://container.googleapis.com/v1/projects/cheese-quizz/locations/europe-west1/clusters/cluster-1
-  issuer: https://container.googleapis.com/v1/projects/cheese-quizz/locations/europe-west1/clusters/cluster-1
+  identityProvider: https://container.googleapis.com/v1/projects/cheese-quizz/locations/europe-west9/clusters/cluster-1
+  issuer: https://container.googleapis.com/v1/projects/cheese-quizz/locations/europe-west9/clusters/cluster-1
   workloadIdentityPool: cheese-quizz.svc.id.goog
 createTime: '2022-08-09T16:39:21.930439260Z'
 description: cluster-1
 endpoint:
   gkeCluster:
-    resourceLink: //container.googleapis.com/projects/cheese-quizz/locations/europe-west1/clusters/cluster-1
+    resourceLink: //container.googleapis.com/projects/cheese-quizz/locations/europe-west9/clusters/cluster-1
   kubernetesMetadata:
     kubernetesApiServerVersion: v1.22.10-gke.600
     memoryMb: 12369
@@ -458,25 +458,25 @@ Depending on your cluster setting, you may need some tricky setup! Actually when
 
   # With only one subnet on our region.
   gcloud compute networks subnets create cloud-build-pool-network \
-    --range=10.124.0.0/20 --network=default --region=europe-west1
+    --range=10.124.0.0/20 --network=default --region=europe-west9
 
   # Now create a router to control how we access internet from this vpc
   gcloud compute routers create cloud-build-router \
     --network=cloud-build-pool-vpc \
-    --region=europe-west1
+    --region=europe-west9
 
   # Reserve a static IP address for egress. This IP must be added in authorized CIDR for the GKE cluster API access.
-  gcloud compute addresses create cloud-build-egress-ip --region=europe-west1
+  gcloud compute addresses create cloud-build-egress-ip --region=europe-west9
 
   # Configure NAT Gateway to use this egress IP.
   gcloud compute routers nats create cloud-router-nat-gateway \
     --router=cloud-build-router \
-    --region=europe-west1 \
+    --region=europe-west9 \
     --nat-custom-subnet-ip-ranges=cloud-build-pool-network  \
     --nat-external-ip-pool=cloud-build-egress-ip
 
   # Now create a simple VM to act as a proxy/nat for outgoing traffic.
-  gcloud compute instances create cloud-build-proxy-nat --zone=europe-west1-b \
+  gcloud compute instances create cloud-build-proxy-nat --zone=europe-west9-b \
     --machine-type=n1-standard-1 --image-project=ubuntu-os-cloud --image-family=ubuntu-1804-lts \
     --network=cloud-build-pool-vpc --subnet=cloud-build-pool-subnet --private-network-ip 10.124.0.5 --no-address \
     --tags allowlisted-access --can-ip-forward \
@@ -522,7 +522,7 @@ Depending on your cluster setting, you may need some tricky setup! Actually when
   # Create the Cloud Build worker pool that is peered to default network
   gcloud builds worker-pools create my-pool \
       --project=cheese-quizz \
-      --region=europe-west1 \
+      --region=europe-west9 \
       --peered-network=projects/cheese-quizz/global/networks/cloud-build-pool-vpc \
       --worker-machine-type=e2-standard-2 \
       --worker-disk-size=100GB
@@ -566,7 +566,7 @@ This is the beginning of **Part 3** of the demonstration. Now you're gonne link 
 
 ```sh
 gcloud pubsub topics create cheese-quizz-likes
-gcloud pubsub subscriptions create cheese-quizz-likes-echo --message-retention-duration=10m
+gcloud pubsub subscriptions create cheese-quizz-likes-echo --message-retention-duration=10m --topic cheese-quizz-likes
 ```
 
 > We created a `echo` subscription for tracking and troubleshooting published messages.
@@ -580,16 +580,16 @@ gcloud iam service-accounts create cheese-like-function-sa \
     --description="Service account for cheese-like-function"
 
 gcloud projects add-iam-policy-binding $PROJECT \
-    --member=cheese-like-function-sa@$PROJECT.iam.gserviceaccount.com\
-    --role=roles/pubsub.publisher
+    --member=serviceAccount:cheese-like-function-sa@$PROJECT.iam.gserviceaccount.com\
+    --role=roles/pubsub.publisher --condition=None
 ```
 
 Now just deploy our `quizz-like-function` module that is a NodeJS app as a new `cheese-quizz-like-function` Cloud Function. Here's the command line that should be issued from the root of this repository (it reuses the services account we created and authorized on PubSub topic):
 
 ```sh
 gcloud functions deploy cheese-quizz-like-function \
-    --gen2 --region=europe-west1 \
-    --runtime=nodejs16 \
+    --gen2 --region=europe-west9 \
+    --runtime=nodejs20 \
     --source=quizz-like-function-cf \
     --entry-point=apiLike \
     --trigger-http --allow-unauthenticated \
@@ -604,7 +604,7 @@ Looking at the Cloud Functions console, we can grasp details on our function rev
 Now just demo how Pod are dynamically popped and drained when invocation occurs on function route. You may just click on the access link on the Developer Console or retrieve exposed URL from the command line:
 
 ```sh
-$ gcloud functions describe cheese-quizz-like-function --region=europe-west1 --gen2 | yq '.serviceConfig.uri'
+$ gcloud functions describe cheese-quizz-like-function --region=europe-west9 --gen2 | yq '.serviceConfig.uri'
 https://cheese-quizz-like-function-66y2tgl4qa-ew.a.run.app
 
 # Test things out with a simple post message
@@ -693,8 +693,8 @@ First thing first, provision an Apigee organization attached to your GCP project
     --project=cheese-quizz
 
   gcloud alpha apigee organizations provision \
-    --runtime-location=europe-west1 \
-    --analytics-region=europe-west1 \
+    --runtime-location=europe-west9 \
+    --analytics-region=europe-west9 \
     --authorized-network=default \
     --project=cheese-quizz
   ```
