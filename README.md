@@ -206,7 +206,7 @@ gcloud artifacts repositories create container-registry \
     --location=europe
 
 gcloud projects add-iam-policy-binding $PROJECT \
-    --member=$PROJECT_NUMBER-compute@developer.gserviceaccount.com \
+    --member=serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com \
     --role=roles/artifactregistry.reader
     
 gcloud builds submit --config quizz-client/cloudbuild.yaml quizz-client/
@@ -425,7 +425,7 @@ Then, you will be able to launch the `quizz-question` module in Quarkus developm
 
 ![code-question-run](./assets/code-question-run.png)
 
-Finally, you can launch the `quizz-client` module using a new terminal window this time. Navigate to correct module and issue the `mvn quarlus:dev` command as shown below. 
+Finally, you can launch the `quizz-client` module using a new terminal window this time. Navigate to correct module and issue the `mvn quarkus:dev` command as shown below. 
 
 ![code-client-run](./assets/code-client-run.png)
 

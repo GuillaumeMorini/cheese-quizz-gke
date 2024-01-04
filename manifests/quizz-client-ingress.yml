@@ -9,7 +9,7 @@ metadata:
     app: cheese-quizz-client
 spec:
   rules:
-  - host: cheese-quizz-client.cheese-quizz.lbroudoux.demo.altostrat.com
+  - host: my-cheese-quizz.gmo-inc.com
     http:
       paths:
       - path: /

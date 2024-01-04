@@ -41,7 +41,7 @@ spec:
       containers:
         - name: quizz-client
           #image: gcr.io/cheese-quizz/cheese-quizz-client:latest
-          image: europe-docker.pkg.dev/cheese-quizz/container-registry/cheese-quizz-client:latest
+          image: europe-docker.pkg.dev/workshop-dev-347207/container-registry/cheese-quizz-client:latest
           imagePullPolicy: Always
           env:
           - name: QUARKUS_PROFILE
