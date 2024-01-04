@@ -39,5 +39,5 @@ steps:
       - cheese-quizz
 
 substitutions:
-  _CUSTOM_REGION: europe-west1
-  _CUSTOM_CLUSTER: cluster-1
+  _CUSTOM_REGION: europe-west9
+  _CUSTOM_CLUSTER: gke-ap-1
